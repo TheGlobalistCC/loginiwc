@@ -35,11 +35,11 @@ router.post('/encrypt', async (req, res) => {
 
 // Ruta para recibir el callback desde el API externo
 router.post('/callback', (req, res) => {
-    const { encData, iv } = req.body;
+    const { encData} = req.body;
     
     console.log('Recibido en callback: ', encData);
 
-    const decrypted = encryptionController.decrypt(encData, iv);
+    const decrypted = encryptionController.decrypt(encData);
     console.log('Texto desencriptado: ', decrypted);
 
     // Enviar respuesta final con estado success
