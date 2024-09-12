@@ -1,20 +1,22 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
 const apiRoutes = require('./routes/api');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware para manejar solicitudes POST
+// Middlewares
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Ruta para servir el frontend (index.html)
-app.use(express.static('public'));
+// Servir archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
+// Rutas
 app.use('/api', apiRoutes);
 
-// Escucha en el puerto 3000
+// Escuchar el servidor
 app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });

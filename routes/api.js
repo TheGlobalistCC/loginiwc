@@ -1,29 +1,48 @@
 const express = require('express');
+const axios = require('axios');
 const router = express.Router();
-const { encryptData, decryptData } = require('../controllers/encryption');
+const encryptionController = require('../controllers/encryption');
 
-// Ruta POST para encriptar datos
-router.post('/encrypt', (req, res) => {
-    const { data } = req.body;
-    const encrypted = encryptData(data);
-    const decrypted = decryptData(encrypted);
-    res.json({ encrypted, decrypted });
+// Ruta para encriptar y enviar el POST al API externo
+router.post('/encrypt', async (req, res) => {
+    const { text } = req.body;
+    const encrypted = encryptionController.encrypt(text);
+    
+    console.log('Texto encriptado: ', encrypted);
+
+    try {
+        // Enviar el POST al API externo
+        const response = await axios.post('http://10.80.134.246:9080/WCUSTODY/RedirectVerServlet', {
+            encData: encrypted.encryptedData
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Respuesta del API externo: ', response.data);
+
+        // Responder al front con el resultado del API externo
+        res.json({
+            encData: encrypted.encryptedData,
+            apiResponse: response.data
+        });
+    } catch (error) {
+        console.error('Error al hacer POST al API externo: ', error.message);
+        res.status(500).json({ error: 'Error al comunicarse con el API externo' });
+    }
 });
 
-// Ruta para recibir datos de la API
+// Ruta para recibir el callback desde el API externo
 router.post('/callback', (req, res) => {
-    console.log('Solicitud recibida en /api/callback');
+    const { encData, iv } = req.body;
     
-    const { encData } = req.body;
-    if (!encData) {
-        console.error('No se recibió el parámetro encData');
-        return res.status(400).json({ Status: 'Error', message: 'No se recibió encData' });
-    }
-    
-    const decrypted = decryptData(encData);
-    console.log('Datos desencriptados:', decrypted);
+    console.log('Recibido en callback: ', encData);
 
-    // Enviar respuesta al API con el parámetro Status
+    const decrypted = encryptionController.decrypt(encData, iv);
+    console.log('Texto desencriptado: ', decrypted);
+
+    // Enviar respuesta final con estado success
     res.json({ Status: 'Success' });
 });
 

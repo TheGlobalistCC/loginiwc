@@ -3,16 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comunicación API</title>
-    <script src="app.js" defer></script>
+    <title>Encriptación AES 256</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #history {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .history-item {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+    <script>
+        let history = [];
+
+        async function sendData() {
+            const text = document.getElementById('plaintext').value;
+
+            // Registrar el request en el historial
+            const requestEntry = `Request enviado: ${text}`;
+            addHistory(requestEntry);
+
+            // Enviar el POST al backend
+            const response = await fetch('/api/encrypt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            });
+
+            const data = await response.json();
+            console.log('Response recibido:', data);
+
+            // Mostrar el encData en el front-end
+            document.getElementById('response').textContent = `Encriptado: ${data.encData}`;
+
+            // Registrar el response en el historial
+            const responseEntry = `Response recibido: ${JSON.stringify(data)}`;
+            addHistory(responseEntry);
+        }
+
+        function addHistory(entry) {
+            // Agregar entrada al historial
+            history.push(entry);
+            const historyContainer = document.getElementById('history');
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = entry;
+            historyContainer.appendChild(historyItem);
+        }
+    </script>
 </head>
 <body>
-    <h1>Enviar y recibir datos encriptados</h1>
-    <form id="dataForm">
-        <label for="data">Texto a encriptar:</label>
-        <input type="text" id="data" name="data" required>
-        <button type="submit">Enviar</button>
-    </form>
-    <div id="response"></div>
+    <h1>Encriptación AES 256</h1>
+    <input type="text" id="plaintext" placeholder="Ingresa texto">
+    <button onclick="sendData()">Enviar</button>
+
+    <h2>Resultado:</h2>
+    <p id="response"></p>
+
+    <h2>Historial de Requests y Responses:</h2>
+    <div id="history"></div>
 </body>
 </html>
